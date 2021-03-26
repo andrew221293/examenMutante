@@ -26,6 +26,7 @@
 - Crear User `create role <nameRol> with login password 'some passord';`
 - Dar permisos de superUsuario `ALTER ROLE <nameUser> WITH SUPERUSER;`
 - Dar todos los privilegios al usuario en la BD `GRANT ALL PRIVILEGES ON DATABASE "nameBD" to nameUser;`
+- Crear archivo `config.json` revisar main.go en las lineas 27- 35 para ver los datos necesarios y en el config.json poner la info de la BD
 - Levantar instnacia `go run main.go` y esta ejecutara los archivos de migracion para crear las tablas
 
 ## Uso
@@ -33,5 +34,9 @@
 ### Postman
 
 #### Saber si es mutante o humano
+
+- URL: http://localhost:8080/mutant
+
+#### Obtener los stats
 
 - URL: http://localhost:8080/mutant
