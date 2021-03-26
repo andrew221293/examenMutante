@@ -3,17 +3,18 @@ package main
 import (
 	"context"
 	"database/sql"
+	"examenMutante/config"
 	"fmt"
 	"net/url"
 	"os"
 	"os/signal"
 	"time"
 
-	"examenMutante/config"
 	mErrors "examenMutante/errors"
 	"examenMutante/store"
 	"examenMutante/transport"
 	"examenMutante/usecase"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	_ "github.com/lib/pq"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -38,6 +39,7 @@ func main() {
 	logger := logrus.WithContext(ctx)
 
 	dbInfo := os.Getenv("DATABASE_URL")
+
 	var cfg Config
 	if dbInfo == "" {
 		err := config.LoadConfig(&cfg)
@@ -59,7 +61,7 @@ func main() {
 
 	db, err := sql.Open("postgres", dbInfo)
 	if err != nil {
-		logger.Fatal("Could not start postgres database: %v ", err)
+		logger.Fatal("sql.Open: %v", err)
 	}
 	defer db.Close()
 

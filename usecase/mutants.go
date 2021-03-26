@@ -77,10 +77,10 @@ func (mu Mutants) GetStats(ctx context.Context) (*entity.Stats, error) {
 	if err != nil {
 		log.WithError(err).Errorf("GetStats: error on get stats")
 		return nil, mErrors.Error{
-			Cause: err,
+			Cause:  err,
 			Action: "cannot communicate with db to get stats",
 			Status: 500,
-			Code: "8e11cdc3-ff1e-4b1b-8d12-0cd9651a62f8",
+			Code:   "8e11cdc3-ff1e-4b1b-8d12-0cd9651a62f8",
 		}
 	}
 
