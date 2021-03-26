@@ -8,16 +8,26 @@ import (
 	"examenMutante/entity"
 )
 
+type (
+	MutantsStore interface {
+		Insert(ctx context.Context, request entity.Request) error
+	}
+
+	Mutants struct {
+		Store MutantsStore
+	}
+)
+
 var countSequence int
 
-type Mutant struct {
+
+func NewMutants(mu MutantsStore) Mutants {
+	return Mutants{
+		Store: mu,
+	}
 }
 
-func NewMutants() Mutant {
-	return Mutant{}
-}
-
-func (mu Mutant) IsMutant(ctx context.Context, request entity.Request) (*entity.Response, error) {
+func (mu Mutants) IsMutant(ctx context.Context, request entity.Request) (*entity.Response, error) {
 	if analyzeDNA(request.Dna) {
 		return &entity.Response{
 			request.Dna,
