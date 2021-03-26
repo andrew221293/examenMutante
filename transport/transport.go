@@ -13,6 +13,7 @@ func NewRouter(m Mutants) *echo.Echo {
 
 	mutants := e.Group("mutant")
 	mutants.POST("", m.Create)
+	mutants.GET("", m.GetStats)
 
 	return e
 }

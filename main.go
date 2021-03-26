@@ -47,9 +47,9 @@ func main() {
 		}
 		pgURL := url.URL{
 			Scheme: "postgres",
-			Host: fmt.Sprintf("%s:%s", cfg.PGHost, cfg.PGPort),
-			User: url.UserPassword(cfg.PGUsername, cfg.PGPassword),
-			Path: cfg.DatabaseName,
+			Host:   fmt.Sprintf("%s:%s", cfg.PGHost, cfg.PGPort),
+			User:   url.UserPassword(cfg.PGUsername, cfg.PGPassword),
+			Path:   cfg.DatabaseName,
 		}
 		options := url.Values{}
 		options.Set("sslmode", cfg.SSLMode)
@@ -79,7 +79,7 @@ func main() {
 
 	migrator, err := migrate.New(
 		"file://migrations/", dbInfo,
-		)
+	)
 	if err != nil {
 		logger.WithError(err).Fatalf("cannot open migrations folder")
 	}

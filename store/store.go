@@ -12,7 +12,7 @@ type (
 	}
 )
 
-func NewStore(db *sql.DB, conMaxLifeTime int) (Mutants, error){
+func NewStore(db *sql.DB, conMaxLifeTime int) (Mutants, error) {
 	if err := db.Ping(); err != nil {
 		return Mutants{}, fmt.Errorf("could not ping postgres database: %v", err)
 	}

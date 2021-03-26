@@ -6,13 +6,15 @@ import (
 	"github.com/sirupsen/logrus"
 	"strings"
 
-	mErrors "examenMutante/errors"
 	"examenMutante/entity"
+	mErrors "examenMutante/errors"
 )
 
 type (
 	MutantsStore interface {
-		Insert(ctx context.Context, request entity.Response) error
+		InsertMutant(ctx context.Context, request entity.Response) error
+		InsertHuman(ctx context.Context, request entity.Response) error
+		GetStats(ctx context.Context) (*entity.Stats, error)
 	}
 
 	Mutants struct {
@@ -22,7 +24,6 @@ type (
 
 var countSequence int
 
-
 func NewMutants(mu MutantsStore) Mutants {
 	return Mutants{
 		Store: mu,
@@ -31,29 +32,59 @@ func NewMutants(mu MutantsStore) Mutants {
 
 func (mu Mutants) IsMutant(ctx context.Context, request entity.Request) (*entity.Response, error) {
 	log := logrus.WithContext(ctx)
+	dnaToInsert := entity.Response{
+		Dna:  request.Dna,
+		Name: request.Name,
+	}
 	if analyzeDNA(request.Dna) {
-		mutant := entity.Response{
-			Dna: request.Dna,
-			Name: request.Name,
-		}
-		err := mu.Store.Insert(ctx, mutant)
+		err := mu.Store.InsertMutant(ctx, dnaToInsert)
 		if err != nil {
 			log.WithError(err).Errorf("Insert: error on db insert mutant")
 			return nil, mErrors.Error{
-				Cause: err,
+				Cause:  err,
 				Action: "cannot communicate with db on insert mutant",
 				Status: 500,
-				Code: "69b21d90-f5bd-4ab2-b8db-c8935c9e324e",
+				Code:   "69b21d90-f5bd-4ab2-b8db-c8935c9e324e",
 			}
 		}
-		mutant.Type = "Mutant"
-		return &mutant, nil
+		dnaToInsert.Type = "Mutant"
+		return &dnaToInsert, nil
 	}
-	return &entity.Response{
-		request.Dna,
-		request.Name,
-		"Human",
-	}, nil
+	err := mu.Store.InsertHuman(ctx, dnaToInsert)
+	if err != nil {
+		log.WithError(err).Errorf("Insert: error on db insert humans")
+		return nil, mErrors.Error{
+			Cause:  err,
+			Action: "cannot communicate with db on insert humans",
+			Status: 500,
+			Code:   "69b21d90-f5bd-4ab2-b8db-c8935c9e324e",
+		}
+	}
+	dnaToInsert.Type = "Human"
+
+	return nil, mErrors.Error{
+		Cause:  fmt.Errorf("Not mutant"),
+		Action: "DNA is not from a mutant",
+		Status: 403,
+		Code:   "9ea0438e-1b84-4e6e-91b5-2ed4dc311edf",
+	}
+}
+
+func (mu Mutants) GetStats(ctx context.Context) (*entity.Stats, error) {
+	log := logrus.WithContext(ctx)
+
+	stats, err := mu.Store.GetStats(ctx)
+	if err != nil {
+		log.WithError(err).Errorf("GetStats: error on get stats")
+		return nil, mErrors.Error{
+			Cause: err,
+			Action: "cannot communicate with db to get stats",
+			Status: 500,
+			Code: "8e11cdc3-ff1e-4b1b-8d12-0cd9651a62f8",
+		}
+	}
+
+	return stats, err
 }
 
 func analyzeDNA(dna []string) bool {
@@ -124,7 +155,7 @@ func foundSequence(sequence string) {
 	sequenceToFind := [4]string{"AAAA", "CCCC", "GGGG", "TTTT"}
 	for _, n := range sequenceToFind {
 		if sequence[0:4] == n {
-			countSequence ++
+			countSequence++
 		}
 	}
 }

@@ -2,21 +2,22 @@ package store
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"examenMutante/entity"
 	"fmt"
 	"github.com/lib/pq"
-
-	"examenMutante/entity"
 )
 
-func (s Mutants) Insert(ctx context.Context, request entity.Response) error {
+func (s Mutants) InsertMutant(ctx context.Context, request entity.Response) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return fmt.Errorf("Insert: cannot insert a mutant: %w", err)
 	}
 	_, err = tx.ExecContext(ctx, mutantStatement,
-	   	pq.Array(request.Dna),
+		pq.Array(request.Dna),
 		request.Name,
-		)
+	)
 	if err != nil {
 		secondErr := tx.Rollback()
 		if secondErr != nil {
@@ -26,4 +27,55 @@ func (s Mutants) Insert(ctx context.Context, request entity.Response) error {
 	}
 
 	return tx.Commit()
+}
+
+func (s Mutants) InsertHuman(ctx context.Context, request entity.Response) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return fmt.Errorf("Insert: cannot insert a human: %w", err)
+	}
+	_, err = tx.ExecContext(ctx, humanStatement,
+		pq.Array(request.Dna),
+		request.Name,
+	)
+	if err != nil {
+		secondErr := tx.Rollback()
+		if secondErr != nil {
+			err = fmt.Errorf("%v : %w", err, secondErr)
+		}
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (s Mutants) GetStats(ctx context.Context) (*entity.Stats, error) {
+	statsMutant := s.db.QueryRowContext(ctx, mutantsTotalStatement)
+	statsHuman := s.db.QueryRowContext(ctx, humansTotalStatement)
+
+	stats := &entity.Stats{}
+	err := statsMutant.Scan(
+		&stats.CountMutantDna,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("could't count mutants: %w", "mutants could not be counted")
+		}
+		return nil, err
+	}
+
+	errSecond := statsHuman.Scan(
+		&stats.CountHumanDna,
+	)
+	if errSecond != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("could't count humans: %w", "humans could not be counted")
+		}
+		return nil, err
+	}
+
+	stats.Ratio = float32(stats.CountMutantDna) / float32(stats.CountHumanDna)
+
+	return stats, nil
+
 }

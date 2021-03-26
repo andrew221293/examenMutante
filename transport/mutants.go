@@ -12,6 +12,7 @@ import (
 type (
 	MutantsUseCase interface {
 		IsMutant(ctx context.Context, request entity.Request) (*entity.Response, error)
+		GetStats(ctx context.Context) (*entity.Stats, error)
 	}
 	Mutants struct {
 		UseCase MutantsUseCase
@@ -41,4 +42,15 @@ func (mt Mutants) Create(c echo.Context) error {
 	}
 
 	return c.JSON(200, isMutant)
+}
+
+func (mt Mutants) GetStats(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	stats, err := mt.UseCase.GetStats(ctx)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, stats)
 }
