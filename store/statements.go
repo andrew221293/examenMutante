@@ -4,9 +4,9 @@ const (
 	mutantStatement = `
 	INSERT INTO mutants(
 		dna,
-		name,
+		name
 	) VALUES (
 		$1,
-		$2,
+		$2
 	);`
 )

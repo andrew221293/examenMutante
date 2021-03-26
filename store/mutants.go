@@ -3,17 +3,18 @@ package store
 import (
 	"context"
 	"fmt"
+	"github.com/lib/pq"
 
 	"examenMutante/entity"
 )
 
-func (s Mutants) Insert(ctx context.Context, request entity.Request) error {
+func (s Mutants) Insert(ctx context.Context, request entity.Response) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return fmt.Errorf("Insert: cannot insert a mutant: %w", err)
 	}
 	_, err = tx.ExecContext(ctx, mutantStatement,
-		request.Dna,
+	   	pq.Array(request.Dna),
 		request.Name,
 		)
 	if err != nil {

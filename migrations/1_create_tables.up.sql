@@ -1,4 +1,4 @@
 CREATE TABLE "mutants" (
-    dna varchar(6)[],
+    dna varchar unique ,
     name varchar
-)
+);

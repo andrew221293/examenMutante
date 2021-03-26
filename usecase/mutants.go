@@ -3,14 +3,16 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"strings"
 
+	mErrors "examenMutante/errors"
 	"examenMutante/entity"
 )
 
 type (
 	MutantsStore interface {
-		Insert(ctx context.Context, request entity.Request) error
+		Insert(ctx context.Context, request entity.Response) error
 	}
 
 	Mutants struct {
@@ -28,12 +30,24 @@ func NewMutants(mu MutantsStore) Mutants {
 }
 
 func (mu Mutants) IsMutant(ctx context.Context, request entity.Request) (*entity.Response, error) {
+	log := logrus.WithContext(ctx)
 	if analyzeDNA(request.Dna) {
-		return &entity.Response{
-			request.Dna,
-			request.Name,
-			"Mutant",
-		}, nil
+		mutant := entity.Response{
+			Dna: request.Dna,
+			Name: request.Name,
+		}
+		err := mu.Store.Insert(ctx, mutant)
+		if err != nil {
+			log.WithError(err).Errorf("Insert: error on db insert mutant")
+			return nil, mErrors.Error{
+				Cause: err,
+				Action: "cannot communicate with db on insert mutant",
+				Status: 500,
+				Code: "69b21d90-f5bd-4ab2-b8db-c8935c9e324e",
+			}
+		}
+		mutant.Type = "Mutant"
+		return &mutant, nil
 	}
 	return &entity.Response{
 		request.Dna,
@@ -42,7 +56,7 @@ func (mu Mutants) IsMutant(ctx context.Context, request entity.Request) (*entity
 	}, nil
 }
 
-func analyzeDNA(dna [6]string) bool {
+func analyzeDNA(dna []string) bool {
 	countSequence = 0
 	adn := [6][6]string{}
 	for a, values := range dna {
@@ -51,6 +65,7 @@ func analyzeDNA(dna [6]string) bool {
 			adn[a][b] = value
 		}
 	}
+
 	fmt.Println(" 	0 	1	2	3	4	5")
 	fmt.Println(" -------------------------------------------------")
 	fmt.Println("0	" + adn[0][0] + "	" + adn[0][1] + "	" + adn[0][2] + "	" + adn[0][3] + "	" + adn[0][4] + "	" + adn[0][5])
@@ -77,13 +92,13 @@ func analyzeDNA(dna [6]string) bool {
 	return false
 }
 
-func horizontal(dna [6]string) {
+func horizontal(dna []string) {
 	for _, sequence := range dna {
 		foundSequence(sequence)
 	}
 }
 
-func vertical(dna [6]string) {
+func vertical(dna []string) {
 	for i := 0; i < len(dna); i++ {
 		var sequence string
 		for _, values := range dna {
@@ -93,7 +108,7 @@ func vertical(dna [6]string) {
 	}
 }
 
-func diagonal(dna [6]string) {
+func diagonal(dna []string) {
 	var sequence string
 	for i := 0; i < len(dna); i++ {
 		for index, values := range dna {
