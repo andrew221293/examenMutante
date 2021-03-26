@@ -2,37 +2,43 @@ package transport
 
 import (
 	"context"
+
 	"examenMutante/entity"
+	mErrors "examenMutante/errors"
+
 	"github.com/labstack/echo"
-	"src.srconnect.io/pkg/ctxerr"
 )
 
-type MutantsUsacase interface {
-	ValidateMutant(ctx context.Context, request entity.MutantsRequest) (*entity.MutantsRequest, error)
+type (
+	MutantsUseCase interface {
+		IsMutant(ctx context.Context, request entity.Request) (*entity.Response, error)
+	}
+	Mutants struct {
+		UseCase MutantsUseCase
+	}
+)
+
+func NewMutant(m MutantsUseCase) Mutants {
+	return Mutants{UseCase: m}
 }
 
-type Mutants struct {
-	Usecase MutantsUsacase
-}
-
-func NewMutant(m MutantsUsacase) Mutants {
-	return Mutants{Usecase: m}
-}
-
-func(mt Mutants) Create(c echo.Context) error {
+func (mt Mutants) Create(c echo.Context) error {
 	ctx := c.Request().Context()
-	var mutantRequest entity.MutantsRequest
-	if err := c.Bind(&mutantRequest); err != nil {
-		ctx := ctxerr.SetHTTPStatusCode(ctx, 400)
-		ctx = ctxerr.SetAction(ctx, "invalidBody")
-
-		return ctxerr.Wrap(ctx, err, "64bd031a-8e17-4896-a79d-32e01be5643e", "Request body is invalid")
+	var mutantRequest entity.Request
+	err := c.Bind(&mutantRequest)
+	if err != nil {
+		return mErrors.Error{
+			Cause:  err,
+			Action: "couldn't parse body ",
+			Status: 404,
+			Code:   "64d669af-11ac-4716-b060-720a23f461ed",
+		}
 	}
 
-	mutansCreated, err := mt.Usecase.ValidateMutant(ctx, mutantRequest)
+	isMutant, err := mt.UseCase.IsMutant(ctx, mutantRequest)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(201, mutansCreated)
+	return c.JSON(200, isMutant)
 }
