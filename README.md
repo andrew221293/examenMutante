@@ -40,3 +40,14 @@
 #### Obtener los stats
 
 - URL: http://localhost:8080/mutant
+
+### Server
+https://mutants-310305.uc.r.appspot.com
+
+#### Saber si es mutante o humano
+
+- URL: https://mutants-310305.uc.r.appspot.com/mutant
+
+#### Obtener los stats
+
+- URL: https://mutants-310305.uc.r.appspot.com/mutant
