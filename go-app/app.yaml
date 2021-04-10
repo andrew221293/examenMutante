@@ -1,0 +1,6 @@
+runtime: go115 # or go112 or go113 for the Go 1.12 or Go 1.13 runtime
+env_variables:
+  INSTANCE_CONNECTION_NAME: mutants-310305:us-central1:mutants-dev
+  DB_USER: postgres
+  DB_PASS: 12345678
+  DB_NAME: marvel
